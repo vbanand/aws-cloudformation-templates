@@ -8,7 +8,7 @@ Description: 'AWS CloudFormation Sample Template WordPress_Single_Instance: Word
   creates an Amazon EC2 instance. You will be billed for the AWS resources used if
   you create a stack from this template.'
 Parameters:
-  DBName:
+  DataBaseName:
     AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
     ConstraintDescription: must begin with a letter and contain only alphanumeric
       characters.
@@ -393,12 +393,12 @@ Resources:
               command: !Sub |
                 mysqladmin -u root password '${DBRootPassword}'
               test: !Sub |
-                $(mysql ${DBName} -u root --password='${DBRootPassword}' >/dev/null 2>&1 </dev/null); (( $? != 0 ))
+                $(mysql ${DataBaseName} -u root --password='${DBRootPassword}' >/dev/null 2>&1 </dev/null); (( $? != 0 ))
             02_create_database:
               command: !Sub |  
                 mysql -u root --password='${DBRootPassword}' < /tmp/setup.mysql
               test: !Sub |
-                $(mysql ${DBName} -u root --password='${DBRootPassword}' >/dev/null 2>&1 </dev/null); (( $? !=0))
+                $(mysql ${DataBaseName} -u root --password='${DBRootPassword}' >/dev/null 2>&1 </dev/null); (( $? !=0))
             03_configure_wordpress:
               command: /tmp/create-wp-config
               cwd: /var/www/html/wordpress
@@ -435,7 +435,7 @@ Resources:
               content: !Sub |
                 #!/bin/bash -xe
                 cp /var/www/html/wordpress/wp-config-sample.php /var/www/html/wordpress/wp-config.php
-                sed -i "s/'database_name_here'/'${DBName}'/g" wp-config.php
+                sed -i "s/'database_name_here'/'${DataBaseName}'/g" wp-config.php
                 sed -i "s/'username_here'/'${DBUser}'/g" wp-config.php
                 sed -i "s/'password_here'/'${DBPassword}'/g" wp-config.php                                    
               group: root
@@ -443,9 +443,9 @@ Resources:
               owner: root
             /tmp/setup.mysql:
               content: !Sub |
-                CREATE DATABASE ${DBName};
+                CREATE DATABASE ${DataBaseName};
                 CREATE USER '${DBUser}'@'localhost' IDENTIFIED BY '${DBPassword}';
-                GRANT ALL ON ${DBName}.* TO '${DBUser}'@'localhost'; 
+                GRANT ALL ON ${DataBaseName}.* TO '${DBUser}'@'localhost'; 
                 FLUSH PRIVILEGES;
               group: root
               mode: '000400'
